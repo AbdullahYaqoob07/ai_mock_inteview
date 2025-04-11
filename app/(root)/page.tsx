@@ -1,10 +1,44 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import Image from 'next/image';
+import { dummyInterviews } from '@/constants';
+import InterviewCard from '@/components/InterviewCard';
 
 const Page = () => {
   return (
-    <div>
-      <h1>Page Component</h1>
-    </div>
+   <>
+    <section className='card-cta mb-8'> {/* Added mb-8 to match original spacing */}
+      <div className='flex flex-col gap-6 max-w-lg'>
+        <h2>Get Interview Ready with AI-Powered Practice & Feedback</h2>
+        <p className='text-lg'>
+          Practice on real interview questions and get instant feedback on your performance.
+        </p>
+        <Button asChild className='btn-primary max-sm:w-full'>
+          <Link href="/interview">Start an interview</Link>
+        </Button>
+      </div>
+      <Image src="/robot.png" alt="robot" height={400} width={400} className='max-sm:hidden'/>
+    </section>
+
+    <section className='flex flex-col gap-6 mt-8'> {/* Kept original mt-8 */}
+      <h2>Your Interviews</h2>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'> {/* Added grid layout */}
+       {dummyInterviews.map((interview)=>(
+        <InterviewCard {...interview} key={interview.id} />
+       ))}
+      </div>
+    </section>
+
+    <section className='flex flex-col gap-6 mt-8'> {/* Kept original mt-8 */}
+      <h2>Take an interview</h2>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'> {/* Added grid layout */}
+      {dummyInterviews.map((interview)=>(
+        <InterviewCard {...interview} key={interview.id} />
+       ))}
+      </div>
+    </section>
+   </>
   );
 };
 

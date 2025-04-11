@@ -287,12 +287,13 @@
 
   .card-interview {
     @apply dark-gradient rounded-2xl min-h-full flex flex-col p-6 relative overflow-hidden gap-10 justify-between;
+  }
 
     .badge-text {
       @apply text-sm font-semibold capitalize;
     }
   }
-}
+
 
 @utility dark-gradient {
   @apply bg-gradient-to-b from-[#1A1C20] to-[#08090D];
