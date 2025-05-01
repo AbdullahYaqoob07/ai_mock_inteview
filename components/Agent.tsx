@@ -1,6 +1,10 @@
-import React from 'react'
+"use client"
+
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import { vapi } from '@/lib/vapi.sdk';
 
 enum CallStatus {
   INACTIVE = 'INACTIVE',
@@ -13,15 +17,73 @@ interface AgentProps {
   userName: string;
 }
 
-const Agent = ({ userName }: AgentProps) => {
-  const isSpeaking = true;
-  const currentCallStatus = CallStatus.FINISHED;
-  const messages=[
-    'What is your name?',
-    'My name is Abdullah Yaqoob, nice to meet you',
-  ]
+interface SavedMessasge {
+  role: 'user' |'system'|'assistant'
+  content: string
+}
+const Agent = ({ userName, userId,type}: AgentProps) => {
 
-  const lastMessage=messages[messages.length-1]
+
+  const router=useRouter()
+  
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentCallStatus, setCurrentCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
+  const [messages, setMessages] = useState<SavedMessasge[]>([]);
+    
+  useEffect(()=>{
+    const onCallStart=()=> setCurrentCallStatus(CallStatus.ACTIVE)
+    const onCallEnd=()=> setCurrentCallStatus(CallStatus.FINISHED)
+    const onMessage=(message:Message)=>{
+      if(message.type==='transcript'&&message.transcriptType==='final'){
+        const newMessage={role:message.role,content:message.transcript}
+        setMessages((prev=>[...prev,newMessage]))
+    }
+  }
+  const onSpeechStart=()=>setIsSpeaking(true)
+  const onSpeechEnd=()=>setIsSpeaking(false)
+  const onError=(error:Error)=>console.log("Error",error)
+
+  vapi.on('call-start',onCallStart)
+  vapi.on('call-end',onCallEnd)
+  vapi.on('message',onMessage)
+  vapi.on('speech-start',onSpeechStart)
+  vapi.on('speech-end',onSpeechEnd)
+  vapi.on('error',onError)
+  return()=>{
+    vapi.off('call-start',onCallStart)
+    vapi.off('call-end',onCallEnd)
+    vapi.off('message',onMessage)
+    vapi.off('speech-start',onSpeechStart)
+    vapi.off('speech-end',onSpeechEnd)
+    vapi.off('error',onError)
+  }
+},[])
+
+useEffect(()=>{
+  if(currentCallStatus===CallStatus.FINISHED){
+    router.push('/')
+  }
+},[messages, currentCallStatus, type, userId, router])
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const handleCall=async()=>{
+  setCurrentCallStatus(CallStatus.CONNECTING)
+  await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,{
+    variableValues:{
+      userName:userName,
+      userid:userId,
+    }
+})
+}
+
+const handleDisconnect=async()=>{
+  setCurrentCallStatus(CallStatus.FINISHED)
+  await vapi.stop()
+
+}
+const isCallInactiveorFinished=currentCallStatus===CallStatus.INACTIVE||currentCallStatus===CallStatus.FINISHED
+const latestMessage=messages[messages.length-1]?.content
+  
   return (
     <>
       <div className='call-view'>
@@ -44,19 +106,19 @@ const Agent = ({ userName }: AgentProps) => {
       {messages.length>0&&(
         <div className='transcript-border'>
           <div className='transcript'>
-            <p key={lastMessage} className={cn('transition-opacity duration-500 opacity-0', 'animate-fadeIn opacity-100')}>{lastMessage}</p>
+            <p key={latestMessage} className={cn('transition-opacity duration-500 opacity-0', 'animate-fadeIn opacity-100')}>{latestMessage}</p>
           </div>
           </div>
       )}
 
       <div className='w-full flex justify-center'>
         {currentCallStatus !== CallStatus.ACTIVE ? (
-          <button className='relative btn-call'>
+          <button className='relative btn-call' onClick={handleCall}>
             <span className={cn('absolute animate-ping rounded-full opacity-75', currentCallStatus !== CallStatus.CONNECTING && 'hidden')} />
-            <span>{currentCallStatus === CallStatus.INACTIVE || currentCallStatus === CallStatus.FINISHED ? 'Call' : '. . . .'}</span>
+            <span>{isCallInactiveorFinished ? 'Call' : '. . . '}</span>
           </button>
         ) : (
-          <button className='btn-disconnect'>End</button>
+          <button className='btn-disconnect' onClick={handleDisconnect}>End</button>
         )}
       </div>
     </>

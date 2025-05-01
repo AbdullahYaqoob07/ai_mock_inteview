@@ -6,7 +6,10 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-  }
+  },
+  experimental: {
+    serverExternalPackages: ['google-auth-library'],
+  },
 };
 
 export default nextConfig;

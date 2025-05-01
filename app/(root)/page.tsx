@@ -1,11 +1,24 @@
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
-import { dummyInterviews } from '@/constants';
-import InterviewCard from '@/components/InterviewCard';
 
-const Page = () => {
+import InterviewCard from '@/components/InterviewCard';
+import { getCurrentUser, getInterviewByUserId, getLatestInterviews } from '@/lib/actions/auth.action';
+
+const Page = async() => {
+  
+
+  const user = await getCurrentUser();
+  const [userInterviews = [], latestInterviews = []] = await Promise.all([
+    await getInterviewByUserId(user?.id!),
+    await getLatestInterviews({ userId: user?.id! })
+  ]);
+
+  const hasPastInterviews = userInterviews?.length > 0;
+  const hasUpcomingInterviews = latestInterviews?.length > 0;
+  
   return (
    <>
     <section className='card-cta mb-8'> {/* Added mb-8 to match original spacing */}
@@ -23,19 +36,33 @@ const Page = () => {
 
     <section className='flex flex-col gap-6 mt-8'> {/* Kept original mt-8 */}
       <h2>Your Interviews</h2>
-      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'> {/* Added grid layout */}
-       {dummyInterviews.map((interview)=>(
-        <InterviewCard {...interview} key={interview.id} />
-       ))}
+      <div className='interviews-section'> {/* Added grid layout */}
+       {
+        hasPastInterviews?(
+          userInterviews?.map((interview)=>(
+            <InterviewCard {...interview} key={interview.id} />
+          ))
+        ):(
+          <p>You haven&apos;t taken any interview yet</p>
+  
+        )
+      
+      }
       </div>
     </section>
 
     <section className='flex flex-col gap-6 mt-8'> {/* Kept original mt-8 */}
       <h2>Take an interview</h2>
-      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'> {/* Added grid layout */}
-      {dummyInterviews.map((interview)=>(
-        <InterviewCard {...interview} key={interview.id} />
-       ))}
+      <div className='interviews-section'> {/* Added grid layout */}
+      {
+        hasUpcomingInterviews?(
+          latestInterviews?.map((interview)=>(
+            <InterviewCard {...interview} key={interview.id} />
+          ))
+        ):(
+          <p>There are no interviews present yet</p>
+  
+        )}
       </div>
     </section>
    </>
