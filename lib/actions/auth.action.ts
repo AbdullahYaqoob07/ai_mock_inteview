@@ -133,32 +133,3 @@ export async function isAuthenticated() {
 }
 
 
-export async function getInterviewByUserId(userId:string): Promise<Interview[]|null>{
-  const interviews=await db.collection('interviews').where('userid','==',userId).orderBy('createdAt','desc').get();
-  return interviews.docs.map((doc)=>({
-    id:doc.id,
-    ...doc.data()
-
-  }))as Interview[];
-}
-
-export async function getLatestInterviews(params: GetLatestInterviewsParams): Promise<Interview[]> {
-  try {
-    const { userId, limit = 5 } = params;
-    
-    const interviews = await db.collection('interviews')
-      .where('finalized', '==', true)
-      .where('userId', '!=', userId) // Only get other users' interviews
-      .orderBy('createdAt', 'desc')
-      .limit(limit)
-      .get();
-      
-    return interviews.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Interview[];
-  } catch (error) {
-    console.error('Error fetching latest interviews:', error);
-    return [];
-  }
-}

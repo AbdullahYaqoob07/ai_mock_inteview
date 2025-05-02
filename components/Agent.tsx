@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { vapi } from '@/lib/vapi.sdk';
+import { interviewer } from '@/constants';
 
 enum CallStatus {
   INACTIVE = 'INACTIVE',
@@ -21,7 +22,7 @@ interface SavedMessasge {
   role: 'user' |'system'|'assistant'
   content: string
 }
-const Agent = ({ userName, userId,type}: AgentProps) => {
+const Agent = ({ userName, userId,type,interviewId,questions}: AgentProps) => {
 
 
   const router=useRouter()
@@ -58,22 +59,61 @@ const Agent = ({ userName, userId,type}: AgentProps) => {
     vapi.off('error',onError)
   }
 },[])
+// eslint-disable-next-line react-hooks/exhaustive-deps
+const handleGenerateFeedback=async(messages:SavedMessasges[])=>{
+
+  console.log("Generating feedback...")
+  const {success,id}={
+    success:true,
+    id:'feedback-id'
+
+  }
+  if(success&&id)
+  {
+    router.push(`/interview/${interviewId}/feedback/`)
+  }
+  else{
+    console.log("Error generating feedback")
+    router.push('/')
+  }
+}
 
 useEffect(()=>{
   if(currentCallStatus===CallStatus.FINISHED){
+    if(type==='generate'){
     router.push('/')
   }
-},[messages, currentCallStatus, type, userId, router])
+  else{
+    handleGenerateFeedback(messages)
+  }
+  }
+},[messages, currentCallStatus, type, userId, router, handleGenerateFeedback])
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const handleCall=async()=>{
   setCurrentCallStatus(CallStatus.CONNECTING)
-  await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,{
-    variableValues:{
-      userName:userName,
-      userid:userId,
-    }
+  if(type==='generate'){
+    await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,{
+      variableValues:{
+        userName:userName,
+        userid:userId,
+  }
+
+  
 })
+}
+else{
+  let formattedQuestions=''
+  if(questions){
+    formattedQuestions=questions.map((question)=>(`-${question}`)).join('\n')
+
+  }
+  await vapi.start(interviewer,{
+    variableValues:{
+      questions:formattedQuestions
+    }
+  })
+}
 }
 
 const handleDisconnect=async()=>{
