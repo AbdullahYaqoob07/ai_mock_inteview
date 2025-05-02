@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
-    serverExternalPackages: ['google-auth-library'],
+    // serverExternalPackages is not a valid property and has been removed
   },
 };
 
