@@ -61,7 +61,7 @@ const Agent = ({ userName, userId , type,interviewId,questions}: AgentProps) => 
   }
 },[])
 // eslint-disable-next-line react-hooks/exhaustive-deps
-const handleGenerateFeedback=async(messages:SavedMessasges[])=>{
+const handleGenerateFeedback=async(messages:SavedMessasge[])=>{
 
   console.log("Generating feedback...")
   const {success,feedbackId:id}=await createFeedback({

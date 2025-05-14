@@ -1,5 +1,6 @@
 import React from 'react'
 import dayjs from 'dayjs'
+ // eslint-disable-next-line @typescript-eslint/no-unused-vars
  import{InterviewCardProps,Feedback} from "@/types"
 import Image from 'next/image'
 import { getRandomInterviewCover } from '@/lib/utils'
@@ -11,9 +12,9 @@ import { getFeedbackByInterviewId } from '@/lib/actions/general.action'
 
 
 const InterviewCard = async ({id, userId, role,type ,techstack,createdAt}:InterviewCardProps) => {
-    const feedback= userId&&id?await getFeedbackByInterviewId({interviewId:id,userId})
-    const normalizedType=/mix/gi.test(type)?"Mixed":type
-    const formattedDate=dayjs(feedback?.createdAt||createdAt||Date.now()).format("MMM D,YYYY")
+    const feedback = userId && id ? await getFeedbackByInterviewId(userId) : null;
+    const normalizedType = /mix/gi.test(type) ? "Mixed" : type;
+    const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format("MMM D, YYYY");
   return (
     <div className='card-border w-[360px] max-sm:w-full min-h-96'>
       <div className='card-interview'>
@@ -31,7 +32,7 @@ const InterviewCard = async ({id, userId, role,type ,techstack,createdAt}:Interv
             <p>{formattedDate}</p>
             <div className='flex flex-row gap-2 items-center'>
                 <Image src="/star.svg" alt='star' width={22} height={22}/>
-                <p>{feedback?.totalscore||"---"}/100</p>
+                <p>{feedback?.totalScore||"---"}/100</p>
 
         </div>
       </div>
